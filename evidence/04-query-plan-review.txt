@@ -1,0 +1,18 @@
+Nested Loop  (cost=4.32..19.47 rows=1 width=36) (actual time=0.165..0.167 rows=1 loops=1)
+  Buffers: shared hit=4
+  ->  Bitmap Heap Scan on "Order" o  (cost=4.17..11.29 rows=1 width=36) (actual time=0.029..0.030 rows=1 loops=1)
+        Recheck Cond: (buyer_id = '7f54e9d3-af94-4b05-915d-0647ba05e256'::uuid)
+        Filter: (status = 'DELIVERED'::"OrderStatus")
+        Heap Blocks: exact=1
+        Buffers: shared hit=2
+        ->  Bitmap Index Scan on "Order_buyer_id_created_at_idx"  (cost=0.00..4.17 rows=3 width=0) (actual time=0.010..0.011 rows=1 loops=1)
+              Index Cond: (buyer_id = '7f54e9d3-af94-4b05-915d-0647ba05e256'::uuid)
+              Buffers: shared hit=1
+  ->  Index Only Scan using "OrderItem_order_id_listing_id_idx" on "OrderItem" oi  (cost=0.15..8.17 rows=1 width=32) (actual time=0.131..0.132 rows=1 loops=1)
+        Index Cond: ((order_id = o.id) AND (listing_id = 'a37eaf0c-7c2b-4967-a760-824db64da2dc'::uuid))
+        Heap Fetches: 1
+        Buffers: shared hit=2
+Planning:
+  Buffers: shared hit=277
+Planning Time: 8.785 ms
+Execution Time: 0.262 ms

@@ -1,0 +1,1 @@
+new row for relation "Listing" violates check constraint "listing_price_minor_positive"

@@ -1,0 +1,103 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Buyer {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String
+  email      String    @unique
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+  orders     Order[]
+  reviews    Review[]
+}
+
+model Seller {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String
+  email      String    @unique
+  store_name String
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+  listings   Listing[]
+}
+
+model Listing {
+  id                 String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  seller_id          String      @db.Uuid
+  title              String
+  description        String?
+  price_minor        Int
+  currency           String
+  quantity_available Int
+  category           String?
+  created_at         DateTime    @default(now())
+  updated_at         DateTime    @updatedAt
+  deleted_at         DateTime?
+  seller             Seller      @relation(fields: [seller_id], references: [id])
+  order_items        OrderItem[]
+  reviews            Review[]
+
+  @@index([category, created_at])
+  @@index([seller_id])
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model Order {
+  id                 String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  buyer_id           String      @db.Uuid
+  status             OrderStatus
+  total_amount_minor Int
+  currency           String
+  idempotency_key    String      @unique
+  created_at         DateTime    @default(now())
+  updated_at         DateTime    @updatedAt
+  buyer              Buyer       @relation(fields: [buyer_id], references: [id])
+  order_items        OrderItem[]
+
+  @@index([buyer_id, created_at])
+}
+
+model OrderItem {
+  id                      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_id                String   @db.Uuid
+  listing_id              String   @db.Uuid
+  quantity                Int
+  price_at_purchase_minor Int
+  currency                String
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
+  order                   Order    @relation(fields: [order_id], references: [id])
+  listing                 Listing  @relation(fields: [listing_id], references: [id])
+
+  @@index([order_id, listing_id])
+}
+
+model Review {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  buyer_id   String    @db.Uuid
+  listing_id String    @db.Uuid
+  rating     Int
+  comment    String?
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+  buyer      Buyer     @relation(fields: [buyer_id], references: [id])
+  listing    Listing   @relation(fields: [listing_id], references: [id])
+
+  @@unique([buyer_id, listing_id])
+}
